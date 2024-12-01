@@ -1,10 +1,14 @@
 defmodule Day1 do
   def run() do
     IO.puts("Sample:\n")
-    part1(File.read!("in/day1-sample.txt"))
+    text = File.read!("in/day1-sample.txt") 
+    part1(text)
+    part2(text)
+
     IO.puts("\nSolution:\n")
     text = File.read!("in/day1.txt") 
     part1(text)
+    part2(text)
   end
 
   def part1(text) do
@@ -16,6 +20,14 @@ defmodule Day1 do
     distances = Enum.zip([right, left]) |> Enum.map(fn {a, d} -> abs(a - d) end)
     IO.inspect(distances, label: "Distances")
     IO.puts("Distance: #{distances |> Enum.sum()}")
+  end
+
+  def part2(text) do
+    [left, right] = get_lists(text)
+    repeated = Enum.reduce(right, %{}, fn x, map -> Map.update(map, x, 1, fn v -> v + 1 end) end)
+    IO.inspect(repeated, label: "repeated")
+    similarity_score = Enum.map(left, fn x -> x * Map.get(repeated, x, 0) end) |> Enum.sum
+    IO.puts("Similarity Score: #{similarity_score}")
   end
 
   def get_lists(input) do
