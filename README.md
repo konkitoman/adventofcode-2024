@@ -4,3 +4,5 @@
 
 I'm trying to learn [Elixir](https://elixir-lang.org/) this year.
 
+From day 5, I will use Rust in [Rust project](/aoc)
+
