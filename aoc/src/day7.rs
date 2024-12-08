@@ -1,5 +1,3 @@
-use std::fmt::Write as _;
-
 use aoc::Solution;
 
 pub struct Day7;
@@ -13,13 +11,15 @@ pub struct Test {
 pub enum Operator {
     Add = 0,
     Mul = 1,
+    Combine = 2,
 }
 
 impl std::fmt::Debug for Operator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_char(match self {
-            Operator::Add => '+',
-            Operator::Mul => '*',
+        f.write_str(match self {
+            Operator::Add => "+",
+            Operator::Mul => "*",
+            Operator::Combine => "||",
         })
     }
 }
@@ -31,20 +31,21 @@ impl TryFrom<usize> for Operator {
         Ok(match value {
             0 => Self::Add,
             1 => Self::Mul,
+            2 => Self::Combine,
             _ => return Err(()),
         })
     }
 }
 
 impl Operator {
-    pub fn get_all_operators_for(len: usize) -> Vec<Vec<Operator>> {
+    pub fn get_all_operators_for(len: usize, level: usize) -> Vec<Vec<Operator>> {
         let mut operators = Vec::default();
-        for ii in 0..2usize.pow(len as u32) {
+        for ii in 0..level.pow(len as u32) {
             let mut x = ii;
             let mut ops = Vec::with_capacity(len);
             for _ in 0..len {
-                ops.push(Operator::try_from(x % 2).unwrap());
-                x /= 2;
+                ops.push(Operator::try_from(x % level).unwrap());
+                x /= level;
             }
             operators.push(ops);
         }
@@ -55,6 +56,15 @@ impl Operator {
         match self {
             Operator::Add => left + right,
             Operator::Mul => left * right,
+            Operator::Combine => {
+                let mut count = 0;
+                let mut num = right;
+                while num != 0 {
+                    num /= 10;
+                    count += 1;
+                }
+                (left * 10isize.pow(count as u32)) + right
+            }
         }
     }
 }
@@ -100,7 +110,41 @@ impl Solution for Day7 {
         let mut sum = 0;
 
         'testing: for test in tests {
-            let operators = Operator::get_all_operators_for(test.values.len() - 1);
+            let operators = Operator::get_all_operators_for(test.values.len() - 1, 2);
+            for operators in operators {
+                if test.run(&operators) {
+                    sum += test.value;
+                    continue 'testing;
+                }
+            }
+        }
+
+        sum
+    }
+
+    fn part2(&self, input: &str) -> isize {
+        let tests = input
+            .split('\n')
+            .filter(|x| !x.is_empty())
+            .map(|line| {
+                let mut iter = line.split(':');
+                let value = iter.next().unwrap().parse::<isize>().unwrap();
+                let values = iter
+                    .next()
+                    .unwrap()
+                    .split(' ')
+                    .map(|x| x.trim())
+                    .filter(|x| !x.is_empty())
+                    .map(|x| x.parse::<isize>().unwrap())
+                    .collect::<Vec<isize>>();
+                Test { value, values }
+            })
+            .collect::<Vec<_>>();
+
+        let mut sum = 0;
+
+        'testing: for test in tests {
+            let operators = Operator::get_all_operators_for(test.values.len() - 1, 3);
             for operators in operators {
                 if test.run(&operators) {
                     sum += test.value;
