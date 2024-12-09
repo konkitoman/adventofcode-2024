@@ -84,6 +84,40 @@ impl World {
             }
         }
     }
+
+    pub fn simplate2(&mut self, antena: char) {
+        for (y, row) in self.grid.iter_mut().enumerate() {
+            for (x, cell) in row.iter_mut().enumerate() {
+                let y = y as isize;
+                let x = x as isize;
+                for (ax, ay, t_antena) in self.antenas.iter() {
+                    if *t_antena != antena {
+                        continue;
+                    }
+                    for (sax, say, st_antena) in self.antenas.iter() {
+                        if *st_antena != antena || (sax == ax && say == ay) {
+                            continue;
+                        }
+                        let _ax = (ax - sax) as f64;
+                        let _ay = (ay - say) as f64;
+                        let _dax = (ax - x) as f64;
+                        let _day = (ay - y) as f64;
+                        let l = ((_ax * _ax) + (_ay * _ay)).sqrt();
+                        let nax = _ax / l;
+                        let nay = _ay / l;
+                        let dl = ((_dax * _dax) + (_day * _day)).sqrt();
+                        let ndax = _dax / dl;
+                        let nday = _day / dl;
+                        let dot = ((nax * ndax) + (nay * nday)).sqrt();
+
+                        if !*cell {
+                            *cell = dot >= 0.9999999999;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl Solution for Day8 {
@@ -98,6 +132,25 @@ impl Solution for Day8 {
 
         for ty in antena_types {
             world.simplate(ty);
+        }
+        world
+            .grid
+            .iter()
+            .map(|x| x.iter().map(|c| if *c { 1 } else { 0 }).sum::<isize>())
+            .sum::<isize>()
+    }
+
+    fn part2(&self, input: &str) -> isize {
+        let mut world = World::new(input);
+        let mut antena_types = world
+            .antenas
+            .iter()
+            .map(|(_, _, ch)| *ch)
+            .collect::<Vec<_>>();
+        antena_types.dedup();
+
+        for ty in antena_types.iter() {
+            world.simplate2(*ty);
         }
         world
             .grid
