@@ -53,6 +53,80 @@ impl DiskMap {
 
         Blocks { data }
     }
+
+    pub fn is_arranged(&self) -> bool {
+        let mut iter = self.data.iter();
+        let mut s = 0;
+        for (size, block) in iter.by_ref() {
+            if let Block::Free = block {
+                s = *size;
+                break;
+            }
+        }
+        for (size, block) in iter {
+            match block {
+                Block::File { .. } => {
+                    if *size <= s {
+                        return false;
+                    }
+                }
+                Block::Free => {
+                    s = s.max(*size);
+                }
+            }
+        }
+        true
+    }
+
+    pub fn step_rearrange(&mut self) {
+        let mut last_block = self.data.len() - 1;
+
+        'swap: loop {
+            while let Some((_, Block::Free)) = self.data.get(last_block) {
+                if last_block == 0 {
+                    return;
+                }
+                last_block -= 1;
+            }
+
+            let (size_needed, block) = self.data[last_block];
+            let Block::File { id } = block else { return };
+
+            let mut first_free_block = 0;
+            let mut s;
+            loop {
+                if first_free_block >= self.data.len() {
+                    last_block -= 1;
+                    continue 'swap;
+                }
+                match &self.data[first_free_block] {
+                    (_, Block::File { .. }) => {
+                        first_free_block += 1;
+                    }
+                    (size, Block::Free) => {
+                        s = *size;
+                        if s < size_needed {
+                            first_free_block += 1;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if first_free_block >= last_block {
+                last_block -= 1;
+                continue 'swap;
+            }
+            self.data[last_block] = (size_needed, Block::Free);
+            if size_needed != s {
+                self.data
+                    .insert(first_free_block + 1, (s - size_needed, Block::Free));
+            }
+            self.data[first_free_block] = (size_needed, Block::File { id });
+            break 'swap;
+        }
+    }
 }
 
 impl Blocks {
@@ -93,11 +167,9 @@ impl Blocks {
 
     pub fn checksum(&self) -> usize {
         let mut sum = 0;
-        let mut i = 0;
-        for block in self.data.iter() {
+        for (i, block) in self.data.iter().enumerate() {
             if let Block::File { id } = block {
                 sum += i * id;
-                i += 1;
             }
         }
 
@@ -133,5 +205,19 @@ impl Solution for Day9 {
         }
 
         blocks.checksum() as isize
+    }
+
+    fn part2(&self, input: &str) -> isize {
+        let mut disk_map = DiskMap::new(input.trim());
+
+        #[cfg(feature = "vizualize")]
+        eprintln!("{}", disk_map.to_blocks());
+        while !disk_map.is_arranged() {
+            disk_map.step_rearrange();
+            #[cfg(feature = "vizualize")]
+            eprintln!("{}", disk_map.to_blocks());
+        }
+
+        disk_map.to_blocks().checksum() as isize
     }
 }
