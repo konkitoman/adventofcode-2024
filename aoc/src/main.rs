@@ -24,6 +24,9 @@ use day8::Day8;
 mod day9;
 use day9::Day9;
 
+mod day10;
+use day10::Day10;
+
 fn main() {
     let mut args = std::env::args();
     _ = args.next().unwrap(); // Path
@@ -34,7 +37,7 @@ fn main() {
     let part = part.parse::<usize>().expect("Part needs to be a number!");
 
     let solutions: &[&dyn Solution] = &[
-        &Day1, &Day2, &Day3, &Day4, &Day5, &Day6, &Day7, &Day8, &Day9,
+        &Day1, &Day2, &Day3, &Day4, &Day5, &Day6, &Day7, &Day8, &Day9, &Day10,
     ];
 
     let input = std::io::read_to_string(std::io::stdin()).expect("Cannot read input");
