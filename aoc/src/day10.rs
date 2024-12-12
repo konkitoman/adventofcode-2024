@@ -192,4 +192,26 @@ impl Solution for Day10 {
             .map(|tailhead| tailhead.routes.len())
             .sum::<usize>() as isize
     }
+
+    fn part2(&self, input: &str) -> isize {
+        let map = Topographic::new(input);
+        let tailheads = map
+            .get_positions_with(0)
+            .into_iter()
+            .flat_map(|pos| Tailhead::new(&map, pos))
+            .collect::<Vec<_>>();
+
+        #[cfg(feature = "vizualize")]
+        for (i, tailhead) in tailheads.iter().enumerate() {
+            for (ii, route) in tailhead.routes.iter().enumerate() {
+                println!("{i} {ii}:");
+                print_route(&map, route);
+            }
+        }
+
+        tailheads
+            .iter()
+            .map(|tailhead| tailhead.routes.len())
+            .sum::<usize>() as isize
+    }
 }
