@@ -113,4 +113,35 @@ impl Solution for Day13 {
 
         sum
     }
+
+    fn part2(&self, input: &str) -> isize {
+        let segments = input.split("\n\n").map(Segment::new).collect::<Vec<_>>();
+
+        let mut sum = 0;
+
+        for segment in segments {
+            let px = segment.prize.0 as f64 + 10000000000000.;
+            let py = segment.prize.1 as f64 + 10000000000000.;
+            let bx = segment.button_b.0 as f64;
+            let by = segment.button_b.1 as f64;
+            let ax = segment.button_a.0 as f64;
+            let ay = segment.button_a.1 as f64;
+
+            let button_a_c = (px * by - py * bx) / (ax * by - ay * bx);
+            let button_b_c = (px - ax * button_a_c) / bx;
+
+            let good = button_b_c % 1. == 0. && button_a_c % 1. == 0.;
+            eprintln!(
+                "Good: {}, Count: {}, A: {button_a_c}, B: {button_b_c}",
+                good,
+                button_b_c + button_a_c
+            );
+
+            if good {
+                sum += ((button_a_c * 3.) + (button_b_c)) as isize;
+            }
+        }
+
+        sum
+    }
 }
