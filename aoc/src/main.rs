@@ -36,6 +36,9 @@ use day12::Day12;
 mod day13;
 use day13::Day13;
 
+mod day14;
+use day14::Day14;
+
 fn main() {
     let mut args = std::env::args();
     _ = args.next().unwrap(); // Path
@@ -47,7 +50,7 @@ fn main() {
 
     let solutions: &[&dyn Solution] = &[
         &Day1, &Day2, &Day3, &Day4, &Day5, &Day6, &Day7, &Day8, &Day9, &Day10, &Day11, &Day12,
-        &Day13,
+        &Day13, &Day14,
     ];
 
     let input = std::io::read_to_string(std::io::stdin()).expect("Cannot read input");
